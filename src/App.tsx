@@ -12,70 +12,160 @@ import "chessground/assets/chessground.cburnett.css";
 import { move } from "chessground/drag";
 
 function App() {
-    const chess = new Chess();
+    const game = new Chess();
 
-    const [fenState, setFen] = useState(chess.fen());
+    const SQUARES = [
+        "a1",
+        "b1",
+        "c1",
+        "d1",
+        "e1",
+        "f1",
+        "g1",
+        "h1",
+        "a2",
+        "b2",
+        "c2",
+        "d2",
+        "e2",
+        "f2",
+        "g2",
+        "h2",
+        "a3",
+        "b3",
+        "c3",
+        "d3",
+        "e3",
+        "f3",
+        "g3",
+        "h3",
+        "a4",
+        "b4",
+        "c4",
+        "d4",
+        "e4",
+        "f4",
+        "g4",
+        "h4",
+        "a5",
+        "b5",
+        "c5",
+        "d5",
+        "e5",
+        "f5",
+        "g5",
+        "h5",
+        "a6",
+        "b6",
+        "c6",
+        "d6",
+        "e6",
+        "f6",
+        "g6",
+        "h6",
+        "a7",
+        "b7",
+        "c7",
+        "d7",
+        "e7",
+        "f7",
+        "g7",
+        "h7",
+        "a8",
+        "b8",
+        "c8",
+        "d8",
+        "e8",
+        "f8",
+        "g8",
+        "h8",
+    ];
 
-    const [legal_moves, set_legal_moves] = useState<any>();
+    const [gameState, setGame] = useState<Chess>(game);
+    const [turn, setTurn] = useState<"white" | "black">("white");
+    const [legal_moves, set_legal_moves] = useState<Map<string, string[]>>();
 
-    const handleMove = (orig: string, dest: string, capturedPiece: any) => {
-        chess.move(dest);
-        const fen = chess.fen();
-        console.log(fen);
-        setFen(fen);
+    const BoardLogic = {
+        updateGame: function (game: Chess) {
+            setGame(game);
+        },
+
+        findLegalMoves: function (chess: Chess) {
+            const dests = new Map();
+
+            SQUARES.forEach((s: any) => {
+                const ms = chess.moves({ square: s, verbose: true });
+                if (ms.length)
+                    dests.set(
+                        s,
+                        ms.map((m: any) => m.to)
+                    );
+            });
+
+            set_legal_moves(dests);
+        },
+        checkColor: function (chess: Chess) {
+            setTurn(chess.turn() === "w" ? "white" : "black");
+        },
+
+        handleMove: function (
+            orig: string,
+            dest: string,
+            capturedPiece: any,
+            chess: Chess,
+            cg: JSX.Element
+        ) {
+            chess.move({ from: orig, to: dest });
+            this.checkColor(chess);
+            BoardLogic.findLegalMoves(gameState);
+            this.updateGame(chess);
+        },
     };
 
-    const findLegalMoves = (sq: any) => {
-        const allMoves = chess.moves();
-        console.log(allMoves);
-        const verboseMoves: Array<any> = chess.moves({
-            square: sq,
-            verbose: true,
-        });
-        console.log(verboseMoves);
-        const moves: Array<string> = [];
-        verboseMoves.forEach((move) => moves.push(move.to));
-        const moveObj = new Map();
-        moveObj.set(sq, moves);
-        console.log(moveObj);
-        set_legal_moves(moveObj);
-    };
+    useEffect(() => {
+        BoardLogic.findLegalMoves(gameState);
+    }, []);
+
+    const cg = (
+        <Chessground
+            height={750}
+            width={750}
+            config={{
+                turnColor: turn,
+                movable: {
+                    free: false,
+                    dests: legal_moves,
+                    showDests: true,
+                    color: turn,
+                    events: {
+                        after: (
+                            orig: string,
+                            dest: string,
+                            capturedPiece: any
+                        ) => {
+                            BoardLogic.handleMove(
+                                orig,
+                                dest,
+                                capturedPiece,
+                                gameState,
+                                cg
+                            );
+                        },
+                    },
+                },
+                events: {},
+            }}
+        />
+    );
+
+    useEffect(() => {
+        console.log(cg);
+        console.log(gameState.board());
+    }, [turn]);
 
     return (
         <div className="App">
-            <div className="chess-container">
-                <Chessground
-                    height={750}
-                    width={750}
-                    config={{
-                        fen: fenState,
-                        movable: {
-                            free: false,
-                            dests: legal_moves,
-                            showDests: true,
-                            events: {
-                                after: (
-                                    orig: string,
-                                    dest: string,
-                                    capturedPiece: any
-                                ) => {
-                                    handleMove(orig, dest, capturedPiece);
-                                },
-                            },
-                        },
-                        selectable: {
-                            enabled: false,
-                        },
-                        events: {
-                            select: (key: any) => {
-                                if (chess.moves({ square: key }).length) {
-                                    findLegalMoves(key);
-                                }
-                            },
-                        },
-                    }}
-                />
-            </div>
+            <div className="chess-container">{cg}</div>
         </div>
     );
 }
