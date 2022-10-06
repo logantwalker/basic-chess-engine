@@ -1,9 +1,0 @@
-.App {
-    height: 100vh;
-    width: 100vw;
-}
-.chess-container {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-}
