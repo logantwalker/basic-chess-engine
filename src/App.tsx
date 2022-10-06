@@ -4,7 +4,11 @@ import "./App.css";
 //@ts-ignore
 import Chessground from "@react-chess/chessground";
 import { Chess } from "chess.js";
-
+declare const files: readonly ["a", "b", "c", "d", "e", "f", "g", "h"];
+declare const ranks: readonly ["1", "2", "3", "4", "5", "6", "7", "8"];
+declare type File = typeof files[number];
+declare type Rank = typeof ranks[number];
+declare type Key = "a0" | `${File}${Rank}`;
 // these styles must be imported somewhere
 import "chessground/assets/chessground.base.css";
 import "chessground/assets/chessground.brown.css";
@@ -83,11 +87,13 @@ function App() {
 
     const [gameState, setGame] = useState<Chess>(game);
     const [turn, setTurn] = useState<"white" | "black">("white");
-    const [legal_moves, set_legal_moves] = useState<Map<string, string[]>>();
+    const [legal_moves, set_legal_moves] = useState<Map<Key, Key[]>>();
+    const [inCheck, check] = useState(false);
 
     const BoardLogic = {
         updateGame: function (game: Chess) {
             setGame(game);
+            check(game.inCheck());
         },
 
         findLegalMoves: function (chess: Chess) {
@@ -112,8 +118,7 @@ function App() {
             orig: string,
             dest: string,
             capturedPiece: any,
-            chess: Chess,
-            cg: JSX.Element
+            chess: Chess
         ) {
             chess.move({ from: orig, to: dest });
             this.checkColor(chess);
@@ -131,6 +136,7 @@ function App() {
             height={750}
             width={750}
             config={{
+                check: inCheck,
                 turnColor: turn,
                 movable: {
                     free: false,
@@ -147,8 +153,7 @@ function App() {
                                 orig,
                                 dest,
                                 capturedPiece,
-                                gameState,
-                                cg
+                                gameState
                             );
                         },
                     },
@@ -157,11 +162,6 @@ function App() {
             }}
         />
     );
-
-    useEffect(() => {
-        console.log(cg);
-        console.log(gameState.board());
-    }, [turn]);
 
     return (
         <div className="App">
