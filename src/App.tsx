@@ -95,8 +95,6 @@ function App() {
   const [gameOver, set_gameOver] = useState(false)
   const [overBy, setOverBy] = useState("")
 
-  const [showPromoPrompt, setPromoPrompt] = useState(false)
-
   const findComputerMove = (game: Chess) => {
     fryZero_v0.randomMove(game)
     BoardLogic.checkColor(game)
@@ -146,8 +144,6 @@ function App() {
         (dest[1] === "1" || dest[1] === "8") &&
         chess.get(orig).type === "p"
       ) {
-        setPromoPrompt(true)
-        promotion = "q"
       }
 
       chess.move({ from: orig, to: dest, promotion: promotion })
