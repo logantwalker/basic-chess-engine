@@ -89,6 +89,8 @@ function App() {
     const [turn, setTurn] = useState<"white" | "black">("white");
     const [legal_moves, set_legal_moves] = useState<Map<Key, Key[]>>();
     const [inCheck, check] = useState(false);
+    const [gameOver, set_gameOver] = useState(false);
+    const [overBy, setOverBy] = useState("");
 
     const BoardLogic = {
         updateGame: function (game: Chess) {
@@ -106,6 +108,15 @@ function App() {
                         s,
                         ms.map((m: any) => m.to)
                     );
+                else {
+                    if (chess.isCheckmate()) {
+                        setOverBy("checkmate");
+                    } else {
+                        //this block is where I will eventually implement the other draw check fns
+                        setOverBy("stalemate");
+                    }
+                    set_gameOver(chess.isGameOver());
+                }
             });
 
             set_legal_moves(dests);
@@ -117,7 +128,7 @@ function App() {
         handleMove: function (
             orig: string,
             dest: string,
-            capturedPiece: any,
+            _: any,
             chess: Chess
         ) {
             chess.move({ from: orig, to: dest });
@@ -165,6 +176,7 @@ function App() {
 
     return (
         <div className="App">
+            <div>{gameOver ? <h1>game over by {overBy}</h1> : null}</div>
             <div className="chess-container">{cg}</div>
         </div>
     );
