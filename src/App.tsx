@@ -3,7 +3,7 @@ import "./App.css"
 
 //@ts-ignore
 import Chessground from "@react-chess/chessground"
-import { Chess } from "chess.js"
+import { Chess, Square } from "chess.js"
 declare const files: readonly ["a", "b", "c", "d", "e", "f", "g", "h"]
 declare const ranks: readonly ["1", "2", "3", "4", "5", "6", "7", "8"]
 declare type File = typeof files[number]
@@ -85,7 +85,8 @@ function App() {
     "g8",
     "h8",
   ]
-
+  const [firstMoved, setMoved] = useState(false)
+  const [humanSide, setHumanSide] = useState<"white" | "black">("white")
   const [gameState, setGame] = useState<Chess>(game)
   const [fen, setFen] = useState(gameState.fen())
   const [turn, setTurn] = useState<"white" | "black">("white")
@@ -94,12 +95,17 @@ function App() {
   const [gameOver, set_gameOver] = useState(false)
   const [overBy, setOverBy] = useState("")
 
+  const [showPromoPrompt, setPromoPrompt] = useState(false)
+
   const findComputerMove = (game: Chess) => {
     fryZero_v0.randomMove(game)
+    BoardLogic.checkColor(game)
+    BoardLogic.updateGame(game)
   }
 
   const BoardLogic = {
     updateGame: function (game: Chess) {
+      BoardLogic.findLegalMoves(game)
       setGame(game)
       setFen(game.fen())
       check(game.inCheck())
@@ -128,16 +134,25 @@ function App() {
 
       set_legal_moves(dests)
     },
+
     checkColor: function (chess: Chess) {
       setTurn(chess.turn() === "w" ? "white" : "black")
     },
 
-    handleMove: function (orig: string, dest: string, _: any, chess: Chess) {
-      chess.move({ from: orig, to: dest })
-      BoardLogic.findLegalMoves(gameState)
-      findComputerMove(gameState)
-      BoardLogic.findLegalMoves(gameState)
+    handleMove: function (orig: Square, dest: Square, _: any, chess: Chess) {
+      if (!firstMoved) setMoved(true)
+      let promotion = undefined
+      if (
+        (dest[1] === "1" || dest[1] === "8") &&
+        chess.get(orig).type === "p"
+      ) {
+        setPromoPrompt(true)
+        promotion = "q"
+      }
+
+      chess.move({ from: orig, to: dest, promotion: promotion })
       this.updateGame(chess)
+      this.checkColor(chess)
     },
   }
 
@@ -145,25 +160,51 @@ function App() {
     BoardLogic.findLegalMoves(gameState)
   }, [])
 
+  useEffect(() => {
+    const computerSide = humanSide === "white" ? "b" : "w"
+    if (gameState.turn() === computerSide) {
+      findComputerMove(gameState)
+    }
+  }, [turn])
+
+  useEffect(() => {
+    if (humanSide === "black") {
+      findComputerMove(gameState)
+    }
+  }, [humanSide])
+
   return (
     <div className="flex w-full justify-center">
       <div>{gameOver ? <h1>game over by {overBy}</h1> : null}</div>
+
       <div className="color-shift mt-10 mb-5 w-full min-w-min flex-col justify-center overflow-hidden rounded-sm border border-stone-500 bg-stone-100 p-2.5 align-middle text-stone-900 shadow-lg dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 sm:w-1/2">
+        {firstMoved ? null : (
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mb-3"
+            onClick={() =>
+              setHumanSide(humanSide === "white" ? "black" : "white")
+            }
+          >
+            Change Sides: {humanSide === "white" ? "black" : "white"}
+          </button>
+        )}
+
         <div className="border-t border-b border-stone-600 dark:border-stone-400">
           <Chessground
             height={700}
             width={700}
             config={{
               fen: fen,
+              orientation: humanSide,
               check: inCheck,
-              turnColor: turn,
+              turnColor: humanSide,
               movable: {
                 free: false,
                 dests: legal_moves,
                 showDests: true,
-                color: turn,
+                color: humanSide,
                 events: {
-                  after: (orig: string, dest: string, capturedPiece: any) => {
+                  after: (orig: any, dest: any, capturedPiece: any) => {
                     BoardLogic.handleMove(orig, dest, capturedPiece, gameState)
                   },
                 },
