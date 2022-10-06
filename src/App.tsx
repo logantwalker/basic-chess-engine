@@ -21,6 +21,7 @@ function App() {
     const handleMove = (orig: string, dest: string, capturedPiece: any) => {
         chess.move(dest);
         const fen = chess.fen();
+        console.log(fen);
         setFen(fen);
     };
 
@@ -44,6 +45,8 @@ function App() {
         <div className="App">
             <div className="chess-container">
                 <Chessground
+                    height={750}
+                    width={750}
                     config={{
                         fen: fenState,
                         movable: {

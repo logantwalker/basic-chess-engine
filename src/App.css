@@ -1,3 +1,9 @@
+.App {
+    height: 100vh;
+    width: 100vw;
+}
 .chess-container {
-    width: 50vw;
+    display: flex;
+    width: 100%;
+    justify-content: center;
 }
