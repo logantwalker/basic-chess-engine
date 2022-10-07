@@ -221,7 +221,7 @@ export class fryZero_v1 {
       throw "Unknown piece type: " + piece.type
     }
 
-    var absoluteValue = getAbsoluteValue(piece, piece.color === "w", x, y)
+    var absoluteValue = getAbsoluteValue(piece, piece.color === "b", x, y)
     return piece.color === "w" ? absoluteValue : -absoluteValue
   }
 }
