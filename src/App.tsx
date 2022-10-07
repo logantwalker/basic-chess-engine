@@ -144,6 +144,7 @@ function App() {
         (dest[1] === "1" || dest[1] === "8") &&
         chess.get(orig).type === "p"
       ) {
+        promotion = "q"
       }
 
       chess.move({ from: orig, to: dest, promotion: promotion })
