@@ -14,7 +14,7 @@ import "chessground/assets/chessground.base.css"
 import "chessground/assets/chessground.brown.css"
 import "chessground/assets/chessground.cburnett.css"
 
-import { fryZero_v0 } from "./engines/fryZero_v0"
+import { fryZero_v1 } from "./engines/fryZero_v1"
 
 function App() {
   const game = new Chess()
@@ -96,7 +96,7 @@ function App() {
   const [overBy, setOverBy] = useState("")
 
   const findComputerMove = (game: Chess) => {
-    fryZero_v0.calculateMove(game)
+    fryZero_v1.calculateMove(game)
     BoardLogic.checkColor(game)
     BoardLogic.updateGame(game)
   }
