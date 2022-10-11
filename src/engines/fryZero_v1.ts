@@ -12,8 +12,25 @@ export class fryZero_v1 {
 
   static calculateMove(gameState: Chess) {
     let game = new Chess(gameState.fen())
-    let move = this.minimaxRoot(2, game, false)
+    let move
+    if (gameState.history().length === 1) {
+      console.log("opening move")
+      move = this.openingMoves(game)
+    } else {
+      move = this.minimaxRoot(3, game, false)
+    }
     this.executeMove(gameState, move)
+  }
+
+  static openingMoves(game: Chess) {
+    let move
+    if (game.get("d4").type === "p") {
+      move = { from: "d7", to: "d5" }
+    } else {
+      move = { from: "e7", to: "e5" }
+    }
+
+    return move
   }
 
   static minimaxRoot(depth: number, game: Chess, isMaximisingPlayer: boolean) {
@@ -24,13 +41,7 @@ export class fryZero_v1 {
     for (var i = 0; i < newGameMoves.length; i++) {
       var newGameMove = newGameMoves[i]
       game.move(newGameMove)
-      var value = this.minimax(
-        depth - 1,
-        game,
-        -10000,
-        10000,
-        !isMaximisingPlayer,
-      )
+      var value = this.minimax(depth, game, -10000, 10000, !isMaximisingPlayer)
       game.undo()
       if (value >= bestMove) {
         bestMove = value
@@ -187,14 +198,14 @@ export class fryZero_v1 {
     ) {
       if (piece.type === "p") {
         return (
-          2 +
+          100 +
           (isWhite
             ? fryZero_v1.pawnEvalWhite[y][x]
             : fryZero_v1.pawnEvalBlack[y][x])
         )
       } else if (piece.type === "r") {
         return (
-          5 +
+          500 +
           (isWhite
             ? fryZero_v1.rookEvalWhite[y][x]
             : fryZero_v1.rookEvalBlack[y][x])
@@ -203,16 +214,16 @@ export class fryZero_v1 {
         return 3 + fryZero_v1.knightEval[y][x]
       } else if (piece.type === "b") {
         return (
-          3.5 +
+          350 +
           (isWhite
             ? fryZero_v1.bishopEvalWhite[y][x]
             : fryZero_v1.bishopEvalBlack[y][x])
         )
       } else if (piece.type === "q") {
-        return 9 + fryZero_v1.evalQueen[y][x]
+        return 900 + fryZero_v1.evalQueen[y][x]
       } else if (piece.type === "k") {
         return (
-          150 +
+          1500 +
           (isWhite
             ? fryZero_v1.kingEvalWhite[y][x]
             : fryZero_v1.kingEvalBlack[y][x])
