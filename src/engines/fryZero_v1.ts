@@ -12,13 +12,8 @@ export class fryZero_v1 {
 
   static calculateMove(gameState: Chess) {
     let game = new Chess(gameState.fen())
-    let move
-    if (gameState.history().length === 1) {
-      console.log("opening move")
-      move = this.openingMoves(game)
-    } else {
-      move = this.minimaxRoot(3, game, false)
-    }
+    let move = this.minimaxRoot(2, game, false)
+
     this.executeMove(gameState, move)
   }
 
@@ -232,7 +227,7 @@ export class fryZero_v1 {
       throw "Unknown piece type: " + piece.type
     }
 
-    var absoluteValue = getAbsoluteValue(piece, piece.color === "b", x, y)
+    var absoluteValue = getAbsoluteValue(piece, piece.color === "w", x, y)
     return piece.color === "w" ? absoluteValue : -absoluteValue
   }
 }

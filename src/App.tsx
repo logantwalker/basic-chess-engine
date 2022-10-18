@@ -15,6 +15,8 @@ import "chessground/assets/chessground.brown.css"
 import "chessground/assets/chessground.cburnett.css"
 
 import { fryZero_v1 } from "./engines/fryZero_v1"
+import fryZero_v2 from "./engines/fryZero_v2"
+import { chessAnalysisApi } from "chess-analysis-api"
 
 function App() {
   const game = new Chess()
@@ -85,6 +87,8 @@ function App() {
     "g8",
     "h8",
   ]
+  const [gameId, setGameId] = useState<number>()
+  const [playing, setPlaying] = useState(false)
   const [firstMoved, setMoved] = useState(false)
   const [humanSide, setHumanSide] = useState<"white" | "black">("white")
   const [gameState, setGame] = useState<Chess>(game)
@@ -162,34 +166,24 @@ function App() {
     BoardLogic.findLegalMoves(gameState)
   }, [])
 
-  useEffect(() => {
-    const computerSide = humanSide === "white" ? "b" : "w"
-    if (gameState.turn() === computerSide) {
-      findComputerMove(gameState)
-    }
-  }, [turn])
+  // useEffect(() => {
+  //   const computerSide = humanSide === "white" ? "b" : "w"
+  //   if (gameState.turn() === computerSide) {
+  //     findComputerMove(gameState)
+  //   }
+  // }, [turn])
 
   useEffect(() => {
-    if (humanSide === "black") {
+    if (playing && !gameState.isGameOver()) {
       findComputerMove(gameState)
     }
-  }, [humanSide])
+  }, [playing, turn])
 
   return (
     <div className="flex w-full justify-center">
       <div className="color-shift mt-10 mb-5 w-full min-w-min flex-col justify-center overflow-hidden rounded-sm border border-stone-500 bg-stone-100 p-2.5 align-middle text-stone-900 shadow-lg dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 sm:w-1/2">
-        {/* {firstMoved ? null : (
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mb-3"
-            onClick={() =>
-              setHumanSide(humanSide === "white" ? "black" : "white")
-            }
-          >
-            Change Sides: {humanSide === "white" ? "black" : "white"}
-          </button>
-        )} */}
         <div>{gameOver ? <h1>game over by {overBy}</h1> : null}</div>
-
+        <button onClick={() => setPlaying(!playing)}>start</button>
         <div className="border-t border-b border-stone-600 dark:border-stone-400">
           <Chessground
             height={700}
