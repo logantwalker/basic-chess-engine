@@ -6,6 +6,19 @@ declare type File = typeof files[number]
 declare type Rank = typeof ranks[number]
 declare type Key = "a0" | `${File}${Rank}`
 
+/************************************************\
+ ================================================
+ 
+                      fryZero
+              typescript chess engine
+           
+                        by
+                        
+                    Logan Walker
+ 
+ ===============================================
+\************************************************/
+
 const fryZero_v2 = (gameState: Chess) => {}
 
 export default fryZero_v2
