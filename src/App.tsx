@@ -15,12 +15,13 @@ import "chessground/assets/chessground.brown.css"
 import "chessground/assets/chessground.cburnett.css"
 
 import { fryZero_v1 } from "./engines/fryZero_v1"
-import fryZero_v2 from "./engines/fryZero_v2"
-import { chessAnalysisApi } from "chess-analysis-api"
+import wukong_ts from "./engines/fryZero_v2"
 
 function App() {
   const game = new Chess()
+  const engine = wukong_ts()
 
+  console.log(engine)
   const SQUARES = [
     "a1",
     "b1",
@@ -87,9 +88,7 @@ function App() {
     "g8",
     "h8",
   ]
-  const [gameId, setGameId] = useState<number>()
-  const [playing, setPlaying] = useState(false)
-  const [firstMoved, setMoved] = useState(false)
+
   const [humanSide, setHumanSide] = useState<"white" | "black">("white")
   const [gameState, setGame] = useState<Chess>(game)
   const [fen, setFen] = useState(gameState.fen())
@@ -100,9 +99,18 @@ function App() {
   const [overBy, setOverBy] = useState("")
 
   const findComputerMove = (game: Chess) => {
-    fryZero_v1.calculateMove(game)
-    BoardLogic.checkColor(game)
-    BoardLogic.updateGame(game)
+    let currentFen = game.fen()
+    engine.setBoard(currentFen)
+    let bestMove = engine.searchTime(1000) // search for 1 second
+    engine.makeMove(bestMove)
+    let stringMove = engine.moveToString(bestMove)
+
+    BoardLogic.handleMove(
+      stringMove.slice(0, 2),
+      stringMove.slice(2),
+      null,
+      game,
+    )
   }
 
   const BoardLogic = {
@@ -138,7 +146,6 @@ function App() {
           set_gameOver(chess.isGameOver())
         }
       })
-
       set_legal_moves(dests)
     },
 
@@ -146,8 +153,7 @@ function App() {
       setTurn(chess.turn() === "w" ? "white" : "black")
     },
 
-    handleMove: function (orig: Square, dest: Square, _: any, chess: Chess) {
-      if (!firstMoved) setMoved(true)
+    handleMove: function (orig: any, dest: any, _: any, chess: Chess) {
       let promotion = undefined
       if (
         (dest[1] === "1" || dest[1] === "8") &&
@@ -174,16 +180,16 @@ function App() {
   // }, [turn])
 
   useEffect(() => {
-    if (playing && !gameState.isGameOver()) {
+    if (gameState.turn() === "b") {
       findComputerMove(gameState)
     }
-  }, [playing, turn])
+  }, [turn])
 
   return (
     <div className="flex w-full justify-center">
       <div className="color-shift mt-10 mb-5 w-full min-w-min flex-col justify-center overflow-hidden rounded-sm border border-stone-500 bg-stone-100 p-2.5 align-middle text-stone-900 shadow-lg dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 sm:w-1/2">
         <div>{gameOver ? <h1>game over by {overBy}</h1> : null}</div>
-        <button onClick={() => setPlaying(!playing)}>start</button>
+        <button>start</button>
         <div className="border-t border-b border-stone-600 dark:border-stone-400">
           <Chessground
             height={700}
@@ -192,7 +198,7 @@ function App() {
               fen: fen,
               orientation: humanSide,
               check: inCheck,
-              turnColor: humanSide,
+              turnColor: turn,
               movable: {
                 free: false,
                 dests: legal_moves,
